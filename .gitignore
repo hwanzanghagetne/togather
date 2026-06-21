@@ -1,7 +1,9 @@
 # AI / Claude
 CLAUDE.md
 .claude/
-docs/AI_LOG.md
+
+# 개인 문서
+docs/
 
 # Environment
 .env
