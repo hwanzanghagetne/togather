@@ -9,4 +9,6 @@ public interface MeetupService {
     MeetupResponse create(Long userId, MeetupCreateRequest request);
     List<MeetupResponse> findNearby(double lat, double lng, double radius);
     MeetupResponse findById(Long meetupId);
+    MeetupResponse join(Long userId, Long meetupId);
+    MeetupResponse leave(Long userId, Long meetupId);
 }

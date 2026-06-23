@@ -96,16 +96,28 @@ public class Meetup extends BaseEntity {
                 .build();
     }
 
-    public void increaseCurrentCount() {
+    // 참가: 인원 증가 + 정원 다 차면 자동 CLOSED
+    public void join() {
         this.currentCount++;
+        if (this.currentCount >= this.maxParticipants) {
+            this.status = MeetupStatus.CLOSED;
+        }
     }
 
-    public void decreaseCurrentCount() {
+    // 취소: 인원 감소 + CLOSED였으면 다시 OPEN
+    public void leave() {
         this.currentCount--;
+        if (this.status == MeetupStatus.CLOSED) {
+            this.status = MeetupStatus.OPEN;
+        }
     }
 
-    public void close() {
-        this.status = MeetupStatus.CLOSED;
+    public boolean isFull() {
+        return this.currentCount >= this.maxParticipants;
+    }
+
+    public boolean isJoinable() {
+        return this.status == MeetupStatus.OPEN && !isFull();
     }
 
     public void expire() {

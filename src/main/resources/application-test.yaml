@@ -11,4 +11,18 @@ spring:
     show-sql: false
 
   flyway:
-    enabled: false  # 테스트는 JPA가 직접 스키마 생성
+    enabled: false
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-client-id
+            client-secret: test-client-secret
+            scope: email, profile
+
+jwt:
+  secret: test-secret-key-for-test-environment-must-be-32-chars
+  access-expiration: 1800000
+  refresh-expiration: 604800000

@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,5 +47,21 @@ public class MeetupController {
     @GetMapping("/{meetupId}")
     public ResponseEntity<MeetupResponse> findById(@PathVariable Long meetupId) {
         return ResponseEntity.ok(meetupService.findById(meetupId));
+    }
+
+    @PostMapping("/{meetupId}/join")
+    public ResponseEntity<MeetupResponse> join(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long meetupId
+    ) {
+        return ResponseEntity.ok(meetupService.join(userId, meetupId));
+    }
+
+    @DeleteMapping("/{meetupId}/join")
+    public ResponseEntity<MeetupResponse> leave(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long meetupId
+    ) {
+        return ResponseEntity.ok(meetupService.leave(userId, meetupId));
     }
 }
