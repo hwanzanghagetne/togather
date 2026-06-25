@@ -104,9 +104,11 @@ public class Meetup extends BaseEntity {
         }
     }
 
-    // 취소: 인원 감소 + CLOSED였으면 다시 OPEN
+    // 취소: 인원 감소 + CLOSED였으면 다시 OPEN (EXPIRED는 복구 안 함)
     public void leave() {
-        this.currentCount--;
+        if (this.currentCount > 0) {
+            this.currentCount--;
+        }
         if (this.status == MeetupStatus.CLOSED) {
             this.status = MeetupStatus.OPEN;
         }

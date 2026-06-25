@@ -3,6 +3,8 @@ package com.example.chat.domain.chat.controller;
 import com.example.chat.domain.chat.dto.ChatMessageRequest;
 import com.example.chat.domain.chat.dto.ChatMessageResponse;
 import com.example.chat.domain.chat.service.ChatService;
+import com.example.chat.global.exception.BusinessException;
+import com.example.chat.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -32,8 +34,13 @@ public class ChatController {
             @Payload ChatMessageRequest request, // 메시지 본문
             SimpMessageHeaderAccessor headerAccessor // WebSocket 세션 정보
     ) {
-        // WebSocket 연결 시 저장해둔 userId 꺼냄 (5단계에서 설명)
+        if (headerAccessor.getSessionAttributes() == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
         Long userId = (Long) headerAccessor.getSessionAttributes().get("userId");
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
 
         ChatMessageResponse response = chatService.sendMessage(userId, meetupId, request);
 

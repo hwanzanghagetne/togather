@@ -25,6 +25,7 @@ public enum ErrorCode {
     // 모임
     MEETUP_NOT_FOUND(404, "존재하지 않는 모임입니다"),
     MEETUP_EXPIRED(400, "만료된 모임입니다"),
+    MEETUP_NOT_JOINABLE(400, "참가할 수 없는 모임입니다"),
     ALREADY_JOINED(409, "이미 참가한 모임입니다");
 
     private final int status;

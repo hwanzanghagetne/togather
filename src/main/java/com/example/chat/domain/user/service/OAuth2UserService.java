@@ -6,7 +6,6 @@ import com.example.chat.domain.user.domain.UserOAuth;
 import com.example.chat.domain.user.repository.UserOAuthRepository;
 import com.example.chat.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -14,7 +13,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OAuth2UserService extends DefaultOAuth2UserService {
@@ -26,7 +24,6 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
     @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
-        log.info("OAuth2 attributes: {}", oAuth2User.getAttributes());
 
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
         OAuthProvider provider = OAuthProvider.valueOf(registrationId.toUpperCase());
@@ -39,6 +36,9 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         if ("kakao".equals(registrationId)) {
             // 카카오: {"id": 123, "kakao_account": {...}, "properties": {"nickname": "..."}}}
             Long kakaoId = oAuth2User.getAttribute("id");
+            if (kakaoId == null) {
+                throw new OAuth2AuthenticationException("kakao id not found");
+            }
             providerUserId = String.valueOf(kakaoId);
             java.util.Map<String, Object> properties = oAuth2User.getAttribute("properties");
             nickname = properties != null ? (String) properties.get("nickname") : "카카오유저";

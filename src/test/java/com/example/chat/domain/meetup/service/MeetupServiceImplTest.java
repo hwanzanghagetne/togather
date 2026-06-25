@@ -135,7 +135,7 @@ class MeetupServiceImplTest {
 
         assertThatThrownBy(() -> meetupService.join(2L, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining(ErrorCode.MEETUP_EXPIRED.getMessage());
+                .hasMessageContaining(ErrorCode.MEETUP_NOT_JOINABLE.getMessage());
     }
 
     @Test

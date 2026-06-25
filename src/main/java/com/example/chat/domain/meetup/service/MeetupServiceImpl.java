@@ -74,7 +74,7 @@ public class MeetupServiceImpl implements MeetupService {
 
         // OPEN이고 정원 안 찼는지 확인
         if (!meetup.isJoinable()) {
-            throw new BusinessException(ErrorCode.MEETUP_EXPIRED);
+            throw new BusinessException(ErrorCode.MEETUP_NOT_JOINABLE);
         }
 
         // 중복 참가 확인
