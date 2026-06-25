@@ -2,7 +2,9 @@ package com.example.chat.domain.meetup.domain;
 
 import com.example.chat.domain.user.domain.User;
 import com.example.chat.global.common.BaseEntity;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -16,11 +18,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "meetup_participants")
-public class MeetupParticipant extends BaseEntity {
+@Table(name = "meetup_reviews")
+public class MeetupReview extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,26 +35,31 @@ public class MeetupParticipant extends BaseEntity {
     private Meetup meetup;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "reviewer_id", nullable = false)
+    private User reviewer;
 
     @Column(nullable = false)
-    private boolean arrived = false;
+    private int rating;
+
+    @ElementCollection
+    @CollectionTable(name = "meetup_review_tags", joinColumns = @JoinColumn(name = "review_id"))
+    @Column(name = "tag")
+    private List<String> tags;
 
     @Builder
-    private MeetupParticipant(Meetup meetup, User user) {
+    private MeetupReview(Meetup meetup, User reviewer, int rating, List<String> tags) {
         this.meetup = meetup;
-        this.user = user;
+        this.reviewer = reviewer;
+        this.rating = rating;
+        this.tags = tags;
     }
 
-    public void arrive() {
-        this.arrived = true;
-    }
-
-    public static MeetupParticipant create(Meetup meetup, User user) {
-        return MeetupParticipant.builder()
+    public static MeetupReview create(Meetup meetup, User reviewer, int rating, List<String> tags) {
+        return MeetupReview.builder()
                 .meetup(meetup)
-                .user(user)
+                .reviewer(reviewer)
+                .rating(rating)
+                .tags(tags != null ? tags : List.of())
                 .build();
     }
 }

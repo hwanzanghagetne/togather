@@ -2,6 +2,7 @@ package com.example.chat.domain.meetup.controller;
 
 import com.example.chat.domain.meetup.dto.MeetupCreateRequest;
 import com.example.chat.domain.meetup.dto.MeetupResponse;
+import com.example.chat.domain.meetup.dto.ReviewRequest;
 import com.example.chat.domain.meetup.service.MeetupService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -63,5 +64,24 @@ public class MeetupController {
             @PathVariable Long meetupId
     ) {
         return ResponseEntity.ok(meetupService.leave(userId, meetupId));
+    }
+
+    @PostMapping("/{meetupId}/arrive")
+    public ResponseEntity<Void> arrive(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long meetupId
+    ) {
+        meetupService.arrive(userId, meetupId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{meetupId}/review")
+    public ResponseEntity<Void> review(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long meetupId,
+            @RequestBody @Valid ReviewRequest request
+    ) {
+        meetupService.review(userId, meetupId, request);
+        return ResponseEntity.ok().build();
     }
 }

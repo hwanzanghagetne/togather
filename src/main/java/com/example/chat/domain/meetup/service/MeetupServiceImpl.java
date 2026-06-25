@@ -2,10 +2,13 @@ package com.example.chat.domain.meetup.service;
 
 import com.example.chat.domain.meetup.domain.Meetup;
 import com.example.chat.domain.meetup.domain.MeetupParticipant;
+import com.example.chat.domain.meetup.domain.MeetupReview;
 import com.example.chat.domain.meetup.dto.MeetupCreateRequest;
 import com.example.chat.domain.meetup.dto.MeetupResponse;
+import com.example.chat.domain.meetup.dto.ReviewRequest;
 import com.example.chat.domain.meetup.repository.MeetupParticipantRepository;
 import com.example.chat.domain.meetup.repository.MeetupRepository;
+import com.example.chat.domain.meetup.repository.MeetupReviewRepository;
 import com.example.chat.domain.user.domain.User;
 import com.example.chat.domain.user.repository.UserRepository;
 import com.example.chat.global.exception.BusinessException;
@@ -14,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -22,6 +26,7 @@ public class MeetupServiceImpl implements MeetupService {
 
     private final MeetupRepository meetupRepository;
     private final MeetupParticipantRepository meetupParticipantRepository;
+    private final MeetupReviewRepository meetupReviewRepository;
     private final UserRepository userRepository;
 
     @Override
@@ -30,16 +35,19 @@ public class MeetupServiceImpl implements MeetupService {
         User host = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
+        String address = request.address() != null ? request.address() : "";
+        LocalDateTime expiresAt = request.expiresAt() != null ? request.expiresAt() : LocalDateTime.now().plusHours(2);
+
         Meetup meetup = Meetup.create(
                 host,
                 request.title(),
                 request.description(),
                 request.latitude(),
                 request.longitude(),
-                request.address(),
+                address,
                 request.category(),
                 request.maxParticipants(),
-                request.expiresAt()
+                expiresAt
         );
 
         return MeetupResponse.from(meetupRepository.save(meetup));
@@ -109,5 +117,40 @@ public class MeetupServiceImpl implements MeetupService {
         meetup.leave(); // currentCount-- + CLOSED였으면 OPEN 복구
 
         return MeetupResponse.from(meetup);
+    }
+
+    @Override
+    @Transactional
+    public void arrive(Long userId, Long meetupId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        Meetup meetup = meetupRepository.findById(meetupId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETUP_NOT_FOUND));
+
+        MeetupParticipant participant = meetupParticipantRepository.findByMeetupAndUser(meetup, user)
+                .orElseThrow(() -> new BusinessException(ErrorCode.FORBIDDEN));
+
+        participant.arrive();
+    }
+
+    @Override
+    @Transactional
+    public void review(Long userId, Long meetupId, ReviewRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        Meetup meetup = meetupRepository.findById(meetupId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETUP_NOT_FOUND));
+
+        if (!meetupParticipantRepository.existsByMeetupAndUser(meetup, user)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+
+        if (meetupReviewRepository.existsByMeetupIdAndReviewerId(meetupId, userId)) {
+            throw new BusinessException(ErrorCode.DUPLICATE_REVIEW);
+        }
+
+        meetupReviewRepository.save(MeetupReview.create(meetup, user, request.rating(), request.tags()));
     }
 }
