@@ -8,7 +8,6 @@ docs/
 # Environment
 .env
 .env.*
-application-prod.yaml
 application-local.yaml
 application-dev.yaml
 
