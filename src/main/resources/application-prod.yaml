@@ -37,3 +37,10 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
+
+app:
+  frontend-url: ${FRONTEND_URL}
+  allowed-origins: ${ALLOWED_ORIGINS}
+  cookie:
+    secure: ${COOKIE_SECURE:true}
+    same-site: ${COOKIE_SAME_SITE:None}

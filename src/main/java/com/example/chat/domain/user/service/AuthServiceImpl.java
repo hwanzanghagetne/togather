@@ -11,6 +11,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,12 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
+
+    @Value("${app.cookie.secure}")
+    private boolean cookieSecure;
+
+    @Value("${app.cookie.same-site}")
+    private String sameSite;
 
     @Override
     @Transactional
@@ -66,9 +73,14 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private String extractCookie(HttpServletRequest request, String name) {
-        if (request.getCookies() == null) return null;
+        if (request.getCookies() == null) {
+            return null;
+        }
+
         for (Cookie cookie : request.getCookies()) {
-            if (name.equals(cookie.getName())) return cookie.getValue();
+            if (name.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
         }
         return null;
     }
@@ -76,6 +88,8 @@ public class AuthServiceImpl implements AuthService {
     private Cookie createCookie(String name, String value, int maxAge) {
         Cookie cookie = new Cookie(name, value);
         cookie.setHttpOnly(true);
+        cookie.setSecure(cookieSecure);
+        cookie.setAttribute("SameSite", sameSite);
         cookie.setPath("/");
         cookie.setMaxAge(maxAge);
         return cookie;
@@ -84,6 +98,8 @@ public class AuthServiceImpl implements AuthService {
     private Cookie expireCookie(String name) {
         Cookie cookie = new Cookie(name, null);
         cookie.setHttpOnly(true);
+        cookie.setSecure(cookieSecure);
+        cookie.setAttribute("SameSite", sameSite);
         cookie.setPath("/");
         cookie.setMaxAge(0);
         return cookie;
