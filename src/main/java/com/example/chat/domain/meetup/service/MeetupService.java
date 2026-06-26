@@ -1,5 +1,6 @@
 package com.example.chat.domain.meetup.service;
 
+import com.example.chat.domain.meetup.dto.HostTransferRequest;
 import com.example.chat.domain.meetup.dto.JoinRequestSummary;
 import com.example.chat.domain.meetup.dto.JoinResponse;
 import com.example.chat.domain.meetup.dto.MeetupCreateRequest;
@@ -17,6 +18,7 @@ public interface MeetupService {
     MeetupResponse findById(Long userId, Long meetupId);
     JoinResponse join(Long userId, Long meetupId);
     JoinResponse leave(Long userId, Long meetupId);
+    JoinResponse transferHost(Long userId, Long meetupId, Long newHostId);
     void arrive(Long userId, Long meetupId);
     void review(Long userId, Long meetupId, ReviewRequest request);
 

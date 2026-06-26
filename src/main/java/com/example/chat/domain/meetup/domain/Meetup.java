@@ -154,6 +154,23 @@ public class Meetup extends BaseEntity {
         return this.status == MeetupStatus.OPEN && !isFull();
     }
 
+    public boolean isHost(Long userId) {
+        return this.host.getId().equals(userId);
+    }
+
+    public void transferHost(User newHost) {
+        this.host = newHost;
+        this.currentCount--;
+        if (this.status == MeetupStatus.CLOSED) {
+            this.status = MeetupStatus.OPEN;
+        }
+    }
+
+    public void closeByHost() {
+        this.currentCount = 0;
+        this.status = MeetupStatus.CLOSED;
+    }
+
     public void expire() {
         this.status = MeetupStatus.EXPIRED;
     }

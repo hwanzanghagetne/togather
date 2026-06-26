@@ -27,7 +27,9 @@ public enum ErrorCode {
     MEETUP_EXPIRED(400, "만료된 모임입니다"),
     MEETUP_NOT_JOINABLE(400, "참가할 수 없는 모임입니다"),
     ALREADY_JOINED(409, "이미 참가한 모임입니다"),
-    DUPLICATE_REVIEW(409, "이미 후기를 작성했습니다");
+    DUPLICATE_REVIEW(409, "이미 후기를 작성했습니다"),
+    HOST_TRANSFER_REQUIRED(400, "참가자에게 방장을 위임 후 나가기 가능합니다"),
+    NOT_A_PARTICIPANT(400, "모임 참가자가 아닙니다");
 
     private final int status;
     private final String message;

@@ -142,7 +142,12 @@ public class MeetupServiceImpl implements MeetupService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEETUP_NOT_FOUND));
 
         if (userId.equals(meetup.getHost().getId())) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
+            if (meetup.getCurrentCount() <= 1) {
+                // 혼자인 경우 모임 종료
+                meetup.closeByHost();
+                return new JoinResponse(meetupId, JoinStatus.NOT_JOINED);
+            }
+            throw new BusinessException(ErrorCode.HOST_TRANSFER_REQUIRED);
         }
 
         // 참가 취소
@@ -295,6 +300,29 @@ public class MeetupServiceImpl implements MeetupService {
         MeetupPlan plan = meetupPlanRepository.findByMeetupId(meetupId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
         return PlanResponse.from(plan);
+    }
+
+    @Override
+    @Transactional
+    public JoinResponse transferHost(Long userId, Long meetupId, Long newHostId) {
+        Meetup meetup = meetupRepository.findById(meetupId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETUP_NOT_FOUND));
+
+        if (!userId.equals(meetup.getHost().getId())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+
+        User newHost = userRepository.findById(newHostId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        MeetupParticipant newHostParticipant = meetupParticipantRepository.findByMeetupAndUser(meetup, newHost)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_A_PARTICIPANT));
+
+        // 신규 방장: participants → host 역할 전환
+        meetupParticipantRepository.delete(newHostParticipant);
+        meetup.transferHost(newHost);
+
+        return new JoinResponse(meetupId, JoinStatus.NOT_JOINED);
     }
 
     // JoinStatus 계산: DB 조회 2회 (참가자 + 대기열)

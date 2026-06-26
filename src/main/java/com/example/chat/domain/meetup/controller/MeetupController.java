@@ -1,5 +1,6 @@
 package com.example.chat.domain.meetup.controller;
 
+import com.example.chat.domain.meetup.dto.HostTransferRequest;
 import com.example.chat.domain.meetup.dto.JoinRequestSummary;
 import com.example.chat.domain.meetup.dto.JoinResponse;
 import com.example.chat.domain.meetup.dto.MeetupCreateRequest;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -73,6 +75,15 @@ public class MeetupController {
             @PathVariable Long meetupId
     ) {
         return ResponseEntity.ok(meetupService.leave(userId, meetupId));
+    }
+
+    @PatchMapping("/{meetupId}/host")
+    public ResponseEntity<JoinResponse> transferHost(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long meetupId,
+            @RequestBody @Valid HostTransferRequest request
+    ) {
+        return ResponseEntity.ok(meetupService.transferHost(userId, meetupId, request.newHostId()));
     }
 
     @PostMapping("/{meetupId}/arrive")
