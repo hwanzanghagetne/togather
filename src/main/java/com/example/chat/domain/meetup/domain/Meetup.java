@@ -18,7 +18,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -45,15 +47,17 @@ public class Meetup extends BaseEntity {
     @Column(nullable = false)
     private Double longitude;
 
-    @Column(nullable = false)
     private String address;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MeetupCategory category;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private int maxParticipants;
+    private MeetupVisibility visibility;
+
+    private Integer maxParticipants;
 
     @Column(nullable = false)
     private int currentCount;
@@ -62,12 +66,26 @@ public class Meetup extends BaseEntity {
     @Column(nullable = false)
     private MeetupStatus status;
 
+    private Integer minAge;
+    private Integer maxAge;
+
+    private LocalDate meetingDate;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private LocalDateTime expiresAt;
+    private TimeMode timeMode;
+
+    private LocalTime meetingTime;
+
+    @Column(nullable = false)
+    private LocalDateTime visibleUntil;
 
     @Builder
     private Meetup(User host, String title, String description, Double latitude, Double longitude,
-                   String address, MeetupCategory category, int maxParticipants, LocalDateTime expiresAt) {
+                   String address, MeetupCategory category, MeetupVisibility visibility,
+                   Integer maxParticipants, Integer minAge, Integer maxAge,
+                   LocalDate meetingDate, TimeMode timeMode, LocalTime meetingTime,
+                   LocalDateTime visibleUntil) {
         this.host = host;
         this.title = title;
         this.description = description;
@@ -75,14 +93,24 @@ public class Meetup extends BaseEntity {
         this.longitude = longitude;
         this.address = address;
         this.category = category;
+        this.visibility = visibility != null ? visibility : MeetupVisibility.PUBLIC;
         this.maxParticipants = maxParticipants;
         this.currentCount = 1;
         this.status = MeetupStatus.OPEN;
-        this.expiresAt = expiresAt;
+        this.minAge = minAge;
+        this.maxAge = maxAge;
+        this.meetingDate = meetingDate;
+        this.timeMode = timeMode != null ? timeMode : TimeMode.FLEXIBLE;
+        this.meetingTime = meetingTime;
+        this.visibleUntil = visibleUntil;
     }
 
-    public static Meetup create(User host, String title, String description, Double latitude, Double longitude,
-                                String address, MeetupCategory category, int maxParticipants, LocalDateTime expiresAt) {
+    public static Meetup create(User host, String title, String description,
+                                Double latitude, Double longitude, String address,
+                                MeetupCategory category, MeetupVisibility visibility,
+                                Integer maxParticipants, Integer minAge, Integer maxAge,
+                                LocalDate meetingDate, TimeMode timeMode, LocalTime meetingTime,
+                                LocalDateTime visibleUntil) {
         return Meetup.builder()
                 .host(host)
                 .title(title)
@@ -91,20 +119,24 @@ public class Meetup extends BaseEntity {
                 .longitude(longitude)
                 .address(address)
                 .category(category)
+                .visibility(visibility)
                 .maxParticipants(maxParticipants)
-                .expiresAt(expiresAt)
+                .minAge(minAge)
+                .maxAge(maxAge)
+                .meetingDate(meetingDate)
+                .timeMode(timeMode)
+                .meetingTime(meetingTime)
+                .visibleUntil(visibleUntil)
                 .build();
     }
 
-    // 참가: 인원 증가 + 정원 다 차면 자동 CLOSED
     public void join() {
         this.currentCount++;
-        if (this.currentCount >= this.maxParticipants) {
+        if (this.maxParticipants != null && this.currentCount >= this.maxParticipants) {
             this.status = MeetupStatus.CLOSED;
         }
     }
 
-    // 취소: 인원 감소 + CLOSED였으면 다시 OPEN (EXPIRED는 복구 안 함)
     public void leave() {
         if (this.currentCount > 0) {
             this.currentCount--;
@@ -115,7 +147,7 @@ public class Meetup extends BaseEntity {
     }
 
     public boolean isFull() {
-        return this.currentCount >= this.maxParticipants;
+        return this.maxParticipants != null && this.currentCount >= this.maxParticipants;
     }
 
     public boolean isJoinable() {

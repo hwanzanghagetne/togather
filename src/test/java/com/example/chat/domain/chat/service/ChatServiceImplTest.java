@@ -8,6 +8,8 @@ import com.example.chat.domain.chat.repository.ChatMessageRepository;
 import com.example.chat.domain.chat.repository.ChatRoomRepository;
 import com.example.chat.domain.meetup.domain.Meetup;
 import com.example.chat.domain.meetup.domain.MeetupCategory;
+import com.example.chat.domain.meetup.domain.MeetupVisibility;
+import com.example.chat.domain.meetup.domain.TimeMode;
 import com.example.chat.domain.meetup.repository.MeetupRepository;
 import com.example.chat.domain.user.domain.User;
 import com.example.chat.domain.user.repository.UserRepository;
@@ -58,7 +60,8 @@ class ChatServiceImplTest {
         meetup = Meetup.create(
                 sender, "테스트 모임", "설명",
                 35.1548, 129.1259, "부산 수영구",
-                MeetupCategory.FOOD, 4,
+                MeetupCategory.FOOD, MeetupVisibility.PUBLIC,
+                4, null, null, null, TimeMode.FLEXIBLE, null,
                 LocalDateTime.now().plusDays(1)
         );
         ReflectionTestUtils.setField(meetup, "id", 1L);

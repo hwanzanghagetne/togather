@@ -5,6 +5,7 @@ import com.example.chat.domain.meetup.domain.MeetupParticipant;
 import com.example.chat.domain.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface MeetupParticipantRepository extends JpaRepository<MeetupParticipant, Long> {
@@ -12,4 +13,6 @@ public interface MeetupParticipantRepository extends JpaRepository<MeetupPartici
     boolean existsByMeetupAndUser(Meetup meetup, User user);
 
     Optional<MeetupParticipant> findByMeetupAndUser(Meetup meetup, User user);
+
+    List<MeetupParticipant> findAllByMeetup(Meetup meetup);
 }

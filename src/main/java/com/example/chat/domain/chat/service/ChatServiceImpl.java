@@ -2,6 +2,7 @@ package com.example.chat.domain.chat.service;
 
 import com.example.chat.domain.chat.domain.ChatMessage;
 import com.example.chat.domain.chat.domain.ChatRoom;
+import com.example.chat.domain.chat.dto.ChatListResponse;
 import com.example.chat.domain.chat.dto.ChatMessageRequest;
 import com.example.chat.domain.chat.dto.ChatMessageResponse;
 import com.example.chat.domain.chat.repository.ChatMessageRepository;
@@ -59,7 +60,37 @@ public class ChatServiceImpl implements ChatService {
                 .toList();
     }
 
-    // 있으면 가져오고 없으면 새로 만드는 패턴
+    @Override
+    @Transactional(readOnly = true)
+    public List<ChatListResponse> getChatList(Long userId) {
+        return meetupRepository.findAllByHostOrParticipant(userId)
+                .stream()
+                .map(meetup -> {
+                    String lastMsg = null;
+                    java.time.LocalDateTime lastMsgAt = null;
+
+                    java.util.Optional<ChatRoom> room = chatRoomRepository.findByMeetupId(meetup.getId());
+                    if (room.isPresent()) {
+                        java.util.Optional<ChatMessage> last =
+                                chatMessageRepository.findTopByChatRoomIdOrderByCreatedAtDesc(room.get().getId());
+                        if (last.isPresent()) {
+                            lastMsg = last.get().getContent();
+                            lastMsgAt = last.get().getCreatedAt();
+                        }
+                    }
+
+                    return new ChatListResponse(
+                            meetup.getId(),
+                            meetup.getTitle(),
+                            lastMsg,
+                            lastMsgAt,
+                            meetup.getCurrentCount(),
+                            0
+                    );
+                })
+                .toList();
+    }
+
     private ChatRoom getOrCreateChatRoom(Long meetupId) {
         return chatRoomRepository.findByMeetupId(meetupId)
                 .orElseGet(() -> {

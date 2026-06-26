@@ -1,5 +1,6 @@
 package com.example.chat.domain.chat.controller;
 
+import com.example.chat.domain.chat.dto.ChatListResponse;
 import com.example.chat.domain.chat.dto.ChatMessageRequest;
 import com.example.chat.domain.chat.dto.ChatMessageResponse;
 import com.example.chat.domain.chat.service.ChatService;
@@ -48,7 +49,6 @@ public class ChatController {
         messagingTemplate.convertAndSend("/topic/chat/" + meetupId, response);
     }
 
-    // HTTP: 채팅방 입장 시 이전 메시지 이력 조회
     @GetMapping("/api/chat/{meetupId}")
     @org.springframework.web.bind.annotation.ResponseBody
     public ResponseEntity<List<ChatMessageResponse>> getMessages(
@@ -57,5 +57,11 @@ public class ChatController {
         return ResponseEntity.ok(chatService.getMessages(meetupId));
     }
 
-
+    @GetMapping("/api/chats")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public ResponseEntity<List<ChatListResponse>> getChatList(
+            @AuthenticationPrincipal Long userId
+    ) {
+        return ResponseEntity.ok(chatService.getChatList(userId));
+    }
 }

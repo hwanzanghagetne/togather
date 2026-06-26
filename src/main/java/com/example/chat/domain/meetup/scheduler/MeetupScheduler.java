@@ -22,7 +22,7 @@ public class MeetupScheduler {
     @Transactional
     public void expireOutdatedMeetups() {
         List<Meetup> expiredMeetups = meetupRepository
-                .findByStatusAndExpiresAtBefore(MeetupStatus.OPEN, LocalDateTime.now());
+                .findByStatusAndVisibleUntilBefore(MeetupStatus.OPEN, LocalDateTime.now());
 
         // 조회된 모임들을 하나씩 EXPIRED로 변경
         // meetup.expire()는 Meetup 엔티티 안에 status = EXPIRED 하는 메서드

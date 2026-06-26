@@ -11,11 +11,10 @@ import java.util.List;
 
 public interface MeetupRepository extends JpaRepository<Meetup, Long> {
 
-    // Haversine 공식으로 반경 내 OPEN 상태 + 아직 만료 안 된 모임 검색
     @Query(value = """
             SELECT * FROM meetups m
             WHERE m.status = 'OPEN'
-            AND m.expires_at > NOW()
+            AND m.visible_until > NOW()
             AND (
                 6371 * acos(
                     cos(radians(:lat)) * cos(radians(m.latitude))
@@ -29,6 +28,13 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long> {
                             @Param("lng") double lng,
                             @Param("radius") double radius);
 
-    // 자정 만료 배치용: OPEN 상태이면서 만료 시간이 지난 모임 조회
-    List<Meetup> findByStatusAndExpiresAtBefore(MeetupStatus status, LocalDateTime dateTime);
+    List<Meetup> findByStatusAndVisibleUntilBefore(MeetupStatus status, LocalDateTime dateTime);
+
+    @Query("""
+            SELECT DISTINCT m FROM Meetup m
+            LEFT JOIN MeetupParticipant mp ON mp.meetup = m AND mp.user.id = :userId
+            WHERE m.host.id = :userId OR mp.user.id = :userId
+            ORDER BY m.createdAt DESC
+            """)
+    List<Meetup> findAllByHostOrParticipant(@Param("userId") Long userId);
 }
