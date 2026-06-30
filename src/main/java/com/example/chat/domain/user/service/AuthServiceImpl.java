@@ -7,6 +7,7 @@ import com.example.chat.domain.user.repository.UserRepository;
 import com.example.chat.global.exception.BusinessException;
 import com.example.chat.global.exception.ErrorCode;
 import com.example.chat.global.jwt.JwtUtil;
+import com.example.chat.global.oauth2.AuthCodeStore;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,12 +23,33 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
+    private final AuthCodeStore authCodeStore;
 
     @Value("${app.cookie.secure}")
     private boolean cookieSecure;
 
     @Value("${app.cookie.same-site}")
     private String sameSite;
+
+    @Override
+    @Transactional
+    public void exchange(String code, HttpServletResponse response) {
+        Long userId = authCodeStore.consume(code);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        String accessToken = jwtUtil.createAccessToken(user.getId(), user.getRole().name());
+        String refreshToken = jwtUtil.createRefreshToken(user.getId());
+
+        refreshTokenRepository.findByUser(user)
+                .ifPresentOrElse(
+                        token -> token.updateToken(refreshToken),
+                        () -> refreshTokenRepository.save(RefreshToken.create(user, refreshToken))
+                );
+
+        response.addCookie(createCookie("access_token", accessToken, 60 * 30));
+        response.addCookie(createCookie("refresh_token", refreshToken, 60 * 60 * 24 * 7));
+    }
 
     @Override
     @Transactional
