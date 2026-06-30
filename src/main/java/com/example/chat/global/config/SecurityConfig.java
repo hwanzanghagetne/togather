@@ -35,6 +35,9 @@ public class SecurityConfig {
     @Value("${app.allowed-origins}")
     private List<String> allowedOrigins;
 
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -63,11 +66,13 @@ public class SecurityConfig {
                                 .userService(oAuth2UserService))
                         .successHandler(oAuth2SuccessHandler)
                         .failureHandler((request, response, exception) -> {
-                            String msg = exception.getMessage() != null
-                                    ? exception.getMessage() : exception.getClass().getSimpleName();
+                            String msg = exception.getClass().getSimpleName()
+                                    + ": " + exception.getMessage();
                             System.err.println("[OAuth2 Failure] " + msg);
-                            exception.printStackTrace();
-                            response.sendRedirect(allowedOrigins.get(0) + "/login?error=" + msg);
+                            for (StackTraceElement e : exception.getStackTrace()) {
+                                System.err.println("  at " + e);
+                            }
+                            response.sendRedirect(frontendUrl + "/login?error=" + msg);
                         })
                 )
                 .addFilterBefore(
