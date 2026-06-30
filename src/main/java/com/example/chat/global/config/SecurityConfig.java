@@ -62,6 +62,13 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(oAuth2UserService))
                         .successHandler(oAuth2SuccessHandler)
+                        .failureHandler((request, response, exception) -> {
+                            String msg = exception.getMessage() != null
+                                    ? exception.getMessage() : exception.getClass().getSimpleName();
+                            System.err.println("[OAuth2 Failure] " + msg);
+                            exception.printStackTrace();
+                            response.sendRedirect(allowedOrigins.get(0) + "/login?error=" + msg);
+                        })
                 )
                 .addFilterBefore(
                         new JwtAuthenticationFilter(jwtUtil),
