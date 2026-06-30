@@ -77,6 +77,22 @@ public class MeetupController {
         return ResponseEntity.ok(meetupService.leave(userId, meetupId));
     }
 
+    @GetMapping("/my")
+    public ResponseEntity<List<MeetupResponse>> getMyMeetups(
+            @AuthenticationPrincipal Long userId
+    ) {
+        return ResponseEntity.ok(meetupService.getMyMeetups(userId));
+    }
+
+    @DeleteMapping("/{meetupId}")
+    public ResponseEntity<Void> deleteMeetup(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long meetupId
+    ) {
+        meetupService.deleteMeetup(userId, meetupId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PatchMapping("/{meetupId}/host")
     public ResponseEntity<JoinResponse> transferHost(
             @AuthenticationPrincipal Long userId,

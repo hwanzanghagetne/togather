@@ -30,6 +30,8 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long> {
 
     List<Meetup> findByStatusAndVisibleUntilBefore(MeetupStatus status, LocalDateTime dateTime);
 
+    long countByHostId(Long hostId);
+
     @Query("""
             SELECT DISTINCT m FROM Meetup m
             LEFT JOIN MeetupParticipant mp ON mp.meetup = m AND mp.user.id = :userId

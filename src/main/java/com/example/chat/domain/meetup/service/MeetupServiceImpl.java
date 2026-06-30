@@ -303,6 +303,28 @@ public class MeetupServiceImpl implements MeetupService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<MeetupResponse> getMyMeetups(Long userId) {
+        return meetupRepository.findAllByHostOrParticipant(userId)
+                .stream()
+                .map(m -> MeetupResponse.of(m, resolveJoinStatus(userId, m), null))
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public void deleteMeetup(Long userId, Long meetupId) {
+        Meetup meetup = meetupRepository.findById(meetupId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETUP_NOT_FOUND));
+
+        if (!userId.equals(meetup.getHost().getId())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+
+        meetup.expire();
+    }
+
+    @Override
     @Transactional
     public JoinResponse transferHost(Long userId, Long meetupId, Long newHostId) {
         Meetup meetup = meetupRepository.findById(meetupId)

@@ -19,6 +19,8 @@ public interface MeetupService {
     JoinResponse join(Long userId, Long meetupId);
     JoinResponse leave(Long userId, Long meetupId);
     JoinResponse transferHost(Long userId, Long meetupId, Long newHostId);
+    List<MeetupResponse> getMyMeetups(Long userId);
+    void deleteMeetup(Long userId, Long meetupId);
     void arrive(Long userId, Long meetupId);
     void review(Long userId, Long meetupId, ReviewRequest request);
 
