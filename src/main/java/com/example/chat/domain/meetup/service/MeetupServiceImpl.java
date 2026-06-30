@@ -22,6 +22,8 @@ import com.example.chat.domain.meetup.repository.MeetupParticipantRepository;
 import com.example.chat.domain.meetup.repository.MeetupPlanRepository;
 import com.example.chat.domain.meetup.repository.MeetupRepository;
 import com.example.chat.domain.meetup.repository.MeetupReviewRepository;
+import com.example.chat.domain.notification.domain.NotificationType;
+import com.example.chat.domain.notification.service.NotificationService;
 import com.example.chat.domain.user.domain.User;
 import com.example.chat.domain.user.repository.UserRepository;
 import com.example.chat.global.exception.BusinessException;
@@ -44,6 +46,7 @@ public class MeetupServiceImpl implements MeetupService {
     private final MeetupPlanRepository meetupPlanRepository;
     private final MeetupReviewRepository meetupReviewRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -117,12 +120,14 @@ public class MeetupServiceImpl implements MeetupService {
         }
 
         if (meetup.getVisibility() == MeetupVisibility.PRIVATE) {
-            // 이미 대기 중인지 확인
             if (meetupJoinRequestRepository.existsByMeetupAndUserAndStatus(
                     meetup, user, JoinRequestStatus.PENDING)) {
                 return new JoinResponse(meetupId, JoinStatus.PENDING);
             }
             meetupJoinRequestRepository.save(MeetupJoinRequest.create(meetup, user));
+            // 방장에게 참가 요청 알림
+            notificationService.send(
+                    meetup.getHost().getId(), NotificationType.JOIN_REQUESTED, meetupId, user.getNickname());
             return new JoinResponse(meetupId, JoinStatus.PENDING);
         }
 
@@ -235,6 +240,9 @@ public class MeetupServiceImpl implements MeetupService {
         req.approve();
         meetupParticipantRepository.save(MeetupParticipant.create(meetup, req.getUser()));
         meetup.join();
+        // 신청자에게 승인 알림
+        notificationService.send(
+                req.getUser().getId(), NotificationType.APPROVED, meetupId, meetup.getHost().getNickname());
     }
 
     @Override
@@ -251,6 +259,9 @@ public class MeetupServiceImpl implements MeetupService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
 
         req.reject();
+        // 신청자에게 거절 알림
+        notificationService.send(
+                req.getUser().getId(), NotificationType.REJECTED, meetupId, meetup.getHost().getNickname());
     }
 
     @Override

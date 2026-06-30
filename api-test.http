@@ -1,0 +1,37 @@
+### 구글 로그인 (브라우저에서 직접 해야 함)
+# http://localhost:8080/oauth2/authorization/google
+
+### 내 정보 조회 (로그인 후 쿠키 자동 사용)
+GET http://localhost:8080/api/members/me
+
+###
+
+### 모임 생성
+POST http://localhost:8080/api/meetups
+Content-Type: application/json
+
+{
+  "title": "테스트 모임",
+  "description": "채팅 테스트용",
+  "latitude": 35.1548,
+  "longitude": 129.1259,
+  "address": "부산 수영구 민락동",
+  "category": "FOOD",
+  "maxParticipants": 4,
+  "expiresAt": "2026-12-31T23:59:00"
+}
+
+###
+
+### 근처 모임 조회
+GET http://localhost:8080/api/meetups/nearby?lat=35.1548&lng=129.1259&radius=5
+
+###
+
+### 모임 단건 조회 (생성 후 id 수정)
+GET http://localhost:8080/api/meetups/1
+
+###
+
+### 채팅 이력 조회
+GET http://localhost:8080/api/chat/1

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>채팅 테스트</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+    <style>
+        body { font-family: monospace; max-width: 700px; margin: 40px auto; padding: 0 20px; }
+        input, textarea { width: 100%; box-sizing: border-box; margin: 4px 0; padding: 6px; }
+        button { margin: 4px 2px; padding: 6px 14px; cursor: pointer; }
+        #log { border: 1px solid #ccc; height: 300px; overflow-y: auto; padding: 10px; background: #f9f9f9; white-space: pre-wrap; font-size: 13px; }
+        .ok { color: green; } .err { color: red; } .msg { color: #0055cc; }
+    </style>
+</head>
+<body>
+    <h2>WebSocket 채팅 테스트</h2>
+
+    <h4>1. 로그인 (access_token 발급)</h4>
+    <p style="font-size:13px;color:#666">서버 실행 후 <a href="http://localhost:8080/oauth2/authorization/google" target="_blank">구글 로그인</a> → 쿠키에서 access_token 복사해서 붙여넣기</p>
+    <input id="token" placeholder="access_token (Bearer 없이 토큰 값만)" />
+
+    <h4>2. 연결</h4>
+    <input id="meetupId" placeholder="meetupId (숫자)" value="1" style="width:200px" />
+    <button onclick="connect()">연결</button>
+    <button onclick="disconnect()">연결 끊기</button>
+
+    <h4>3. 메시지 전송</h4>
+    <input id="content" placeholder="메시지 내용" />
+    <button onclick="sendMessage()">전송</button>
+
+    <h4>로그</h4>
+    <div id="log"></div>
+    <button onclick="document.getElementById('log').innerHTML=''">로그 지우기</button>
+
+    <script>
+        let stompClient = null;
+
+        function log(text, cls) {
+            const div = document.getElementById('log');
+            const line = document.createElement('div');
+            line.className = cls || '';
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+            div.appendChild(line);
+            div.scrollTop = div.scrollHeight;
+        }
+
+        function connect() {
+            const token = document.getElementById('token').value.trim();
+            const meetupId = document.getElementById('meetupId').value.trim();
+
+            if (!token) { alert('access_token을 입력하세요'); return; }
+            if (!meetupId) { alert('meetupId를 입력하세요'); return; }
+
+            stompClient = new StompJs.Client({
+                webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+                connectHeaders: {
+                    Authorization: `Bearer ${token}`
+                },
+                debug: (str) => log('[DEBUG] ' + str),
+                onConnect: () => {
+                    log('연결 성공!', 'ok');
+                    stompClient.subscribe(`/topic/chat/${meetupId}`, (frame) => {
+                        const msg = JSON.parse(frame.body);
+                        log(`[수신] ${msg.senderNickname}: ${msg.content}`, 'msg');
+                    });
+                    log(`/topic/chat/${meetupId} 구독 완료`, 'ok');
+                },
+                onStompError: (frame) => {
+                    log('STOMP 에러: ' + frame.headers['message'], 'err');
+                },
+                onDisconnect: () => log('연결 끊김', 'err')
+            });
+
+            stompClient.activate();
+        }
+
+        function disconnect() {
+            if (stompClient) {
+                stompClient.deactivate();
+                stompClient = null;
+            }
+        }
+
+        function sendMessage() {
+            if (!stompClient || !stompClient.connected) {
+                alert('먼저 연결하세요');
+                return;
+            }
+            const meetupId = document.getElementById('meetupId').value.trim();
+            const content = document.getElementById('content').value.trim();
+            if (!content) return;
+
+            stompClient.publish({
+                destination: `/app/chat/${meetupId}`,
+                body: JSON.stringify({ content })
+            });
+
+            document.getElementById('content').value = '';
+        }
+    </script>
+</body>
+</html>
