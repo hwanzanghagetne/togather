@@ -11,6 +11,7 @@ import com.example.chat.global.oauth2.AuthCodeStore;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -83,15 +84,25 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = extractCookie(request, "refresh_token");
 
         if (refreshToken != null) {
-            Long userId = jwtUtil.getUserId(refreshToken);
-            userRepository.findById(userId).ifPresent(user ->
-                    refreshTokenRepository.findByUser(user)
-                            .ifPresent(refreshTokenRepository::delete)
-            );
+            try {
+                Long userId = jwtUtil.getUserId(refreshToken);
+                userRepository.findById(userId).ifPresent(user ->
+                        refreshTokenRepository.findByUser(user)
+                                .ifPresent(refreshTokenRepository::delete)
+                );
+            } catch (BusinessException ignored) {
+                // 만료되거나 손상된 refresh_token 이어도 로그아웃은 쿠키/세션 정리까지 수행한다.
+            }
+        }
+
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
         }
 
         response.addCookie(expireCookie("access_token"));
         response.addCookie(expireCookie("refresh_token"));
+        response.addCookie(expireCookie("JSESSIONID"));
     }
 
     private String extractCookie(HttpServletRequest request, String name) {
