@@ -53,9 +53,10 @@ public class User extends BaseEntity {
         this.role = role;
     }
 
-    public void updateProfile(String nickname, String bio) {
+    public void updateProfile(String nickname, String bio, String profileImageUrl) {
         if (nickname != null && !nickname.isBlank()) this.nickname = nickname;
         this.bio = bio;
+        if (profileImageUrl != null) this.profileImageUrl = profileImageUrl;
     }
 
     public static User create(String email, String password, String nickname, String homeCity) {

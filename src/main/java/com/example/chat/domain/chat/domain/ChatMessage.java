@@ -51,12 +51,12 @@ public class ChatMessage extends BaseEntity {
         this.type = type;
     }
 
-    public static ChatMessage create(ChatRoom chatRoom, User sender, String content) {
+    public static ChatMessage create(ChatRoom chatRoom, User sender, String content, MessageType type) {
         return ChatMessage.builder()
                 .chatRoom(chatRoom)
                 .sender(sender)
                 .content(content)
-                .type(MessageType.TEXT)
+                .type(type != null ? type : MessageType.TEXT)
                 .build();
     }
 

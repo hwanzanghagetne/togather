@@ -7,5 +7,8 @@ public record UserUpdateRequest(
         String nickname,
 
         @Size(max = 200)
-        String bio
+        String bio,
+
+        @Size(max = 500)
+        String profileImageUrl
 ) {}

@@ -40,7 +40,7 @@ public class ChatServiceImpl implements ChatService {
 
         // 메시지 DB 저장
         ChatMessage message = chatMessageRepository.save(
-                ChatMessage.create(chatRoom, sender, request.content())
+                ChatMessage.create(chatRoom, sender, request.content(), request.type())
         );
 
         return ChatMessageResponse.from(message);

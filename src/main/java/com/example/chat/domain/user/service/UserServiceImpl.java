@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse updateMe(Long userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-        user.updateProfile(request.nickname(), request.bio());
+        user.updateProfile(request.nickname(), request.bio(), request.profileImageUrl());
         return UserResponse.from(user);
     }
 
