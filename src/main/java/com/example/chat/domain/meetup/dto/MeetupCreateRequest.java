@@ -40,9 +40,9 @@ public record MeetupCreateRequest(
         @Min(2) @Max(100)
         Integer maxParticipants,
 
-        @Min(14) @Max(100)
+        @Min(20) @Max(100)
         Integer minAge,
-        @Min(14) @Max(100)
+        @Min(20) @Max(100)
         Integer maxAge,
 
         LocalDate meetingDate,
