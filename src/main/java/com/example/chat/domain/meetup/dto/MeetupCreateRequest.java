@@ -3,9 +3,13 @@ package com.example.chat.domain.meetup.dto;
 import com.example.chat.domain.meetup.domain.MeetupCategory;
 import com.example.chat.domain.meetup.domain.MeetupVisibility;
 import com.example.chat.domain.meetup.domain.TimeMode;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,28 +17,32 @@ import java.time.LocalTime;
 
 public record MeetupCreateRequest(
 
-        @NotBlank
+        @NotBlank @Size(max = 50)
         String title,
 
+        @Size(max = 300)
         String description,
 
-        @NotNull
+        @NotNull @DecimalMin("-90.0") @DecimalMax("90.0")
         Double latitude,
 
-        @NotNull
+        @NotNull @DecimalMin("-180.0") @DecimalMax("180.0")
         Double longitude,
 
-        String address,         // nullable — reverse geocoding 없이 위경도만 보낼 수 있음
+        @Size(max = 200)
+        String address,
 
         @NotNull
         MeetupCategory category,
 
-        MeetupVisibility visibility,    // nullable → 기본값 PUBLIC
+        MeetupVisibility visibility,
 
-        @Min(2)
-        Integer maxParticipants,        // nullable → 정원 제한 없음
+        @Min(2) @Max(100)
+        Integer maxParticipants,
 
+        @Min(14) @Max(100)
         Integer minAge,
+        @Min(14) @Max(100)
         Integer maxAge,
 
         LocalDate meetingDate,

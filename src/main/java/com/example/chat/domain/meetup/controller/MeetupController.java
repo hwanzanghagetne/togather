@@ -50,7 +50,8 @@ public class MeetupController {
             @RequestParam double lng,
             @RequestParam(defaultValue = "5.0") double radius
     ) {
-        return ResponseEntity.ok(meetupService.findNearby(userId, lat, lng, radius));
+        double cappedRadius = Math.min(radius, 50.0); // 최대 50km
+        return ResponseEntity.ok(meetupService.findNearby(userId, lat, lng, cappedRadius));
     }
 
     @GetMapping("/{meetupId}")

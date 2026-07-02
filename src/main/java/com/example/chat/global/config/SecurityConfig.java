@@ -67,13 +67,9 @@ public class SecurityConfig {
                                 .userService(oAuth2UserService))
                         .successHandler(oAuth2SuccessHandler)
                         .failureHandler((request, response, exception) -> {
-                            String msg = exception.getClass().getSimpleName()
-                                    + ": " + exception.getMessage();
-                            System.err.println("[OAuth2 Failure] " + msg);
-                            for (StackTraceElement e : exception.getStackTrace()) {
-                                System.err.println("  at " + e);
-                            }
-                            response.sendRedirect(frontendUrl + "/login?error=" + msg);
+                            System.err.println("[OAuth2 Failure] " + exception.getClass().getSimpleName()
+                                    + ": " + exception.getMessage());
+                            response.sendRedirect(frontendUrl + "/login?error=oauth_failed");
                         })
                 )
                 .addFilterBefore(
